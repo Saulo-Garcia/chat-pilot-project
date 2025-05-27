@@ -3,12 +3,6 @@ name = "fastapi-chat-backend"
 version = "0.1.0"
 description = ""
 authors = ["Saulo-Garcia <sauloagarcia@gmail.com>"]
-package-mode = false
-readme = "README.md"
-license = "MIT"
-homepage = "https://github.com/Saulo-Garcia/chat-pilot-project"
-repository = "https://github.com/Saulo-Garcia/chat-pilot-project"
-keywords = ["fastapi", "chat", "backend"]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.14"
