@@ -1,25 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-
-
-@app.get("/")
-def read_root():
-    return {"message": "SERVIDOR ONLINE"}
-
-
-# Permitir CORS (recomenda-se especificar o IP em produção)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Gerenciador de conexões por sala
-
 
 class ConnectionManager:
     def __init__(self):
@@ -36,13 +17,10 @@ class ConnectionManager:
         for connection in self.active_connections.get(room, []):
             await connection.send_text(message)
 
-
 manager = ConnectionManager()
 
-
 @app.websocket("/ws/{room}")
-async def websocket_endpoint(websocket: WebSocket, room: str,
-                             token: str = Query(...)):
+async def websocket_endpoint(websocket: WebSocket, room: str, token: str = Query(...)):
     await manager.connect(room, websocket)
     try:
         while True:
@@ -52,3 +30,6 @@ async def websocket_endpoint(websocket: WebSocket, room: str,
         manager.disconnect(room, websocket)
         await manager.broadcast(room, f"{token} saiu da sala.")
 
+@app.get("/")
+def root():
+    return {"message": "SERVIDOR ONLINE"}
