@@ -1,6 +1,5 @@
 # Permitir CORS (recomenda-se especificar o IP em produção)
-from http.client import ImproperConnectionState
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -18,36 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gerenciador de conexões por sala
+connect_clients =[]
 
 
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: dict[str, list[WebSocket]] = {}
-
-    async def connect(self, room: str, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.setdefault(room, []).append(websocket)
-
-    def disconnect(self, room: str, websocket: WebSocket):
-        self.active_connections[room].remove(websocket)
-
-    async def broadcast(self, room: str, message: str):
-        for connection in self.active_connections.get(room, []):
-            await connection.send_text(message)
-
-
-manager = ConnectionManager()
-
-
-@app.websocket("/ws/{room}")
-async def websocket_endpoint(websocket: WebSocket, room: str,
-                             token: str = Query(...)):
-    await manager.connect(room, websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await manager.broadcast(room, f"{token}: {data}")
-    except WebSocketDisconnect:
-        manager.disconnect(room, websocket)
-        await manager.broadcast(room, f"{token} saiu da sala.")
+@app.websocket("/ws/chat")
+async def websocket_endpoint(websocket: WebSocket): 
+   await websocket.accept()
+   connect_clients.append(websocket)
+   try:
+       while True:
+           data = await websocket.receive_text()
+           for client in connect_clients:
+               await client.send_text(data)
+   except WebSocketDisconnect:
+       connect_clients.remove(websocket)
