@@ -51,3 +51,7 @@ async def websocket_endpoint(websocket: WebSocket, room: str,
     except WebSocketDisconnect:
         manager.disconnect(room, websocket)
         await manager.broadcast(room, f"{token} saiu da sala.")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
